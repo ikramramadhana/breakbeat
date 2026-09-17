@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(91, 122, 157, 0.16), transparent),
+    radial-gradient(ellipse 60% 50% at 85% 100%, rgba(232, 185, 117, 0.06), transparent),
+    #0b0f1a;
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(232, 185, 117, 0.25);
+  color: #f0ede6;
+}
+
+/* thin range input, styled to feel like a soft dial rather than a browser default */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 999px;
+  background: #252e45;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #e8b975;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(232, 185, 117, 0.55);
+  transition: transform 120ms ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 999px;
+  background: #e8b975;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(232, 185, 117, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
