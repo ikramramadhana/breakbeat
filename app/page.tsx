@@ -260,28 +260,51 @@ export default function Home() {
   return (
     <main className="relative min-h-screen">
       <div className="mx-auto w-full max-w-sm px-5 pb-28 pt-8">
-        <h1 className="font-body text-xs tracking-wide text-ink-faint">
-          breakbeat
-        </h1>
-        <p className="mt-1 font-display text-lg italic text-ink-primary">
-          your music, no ads, no rush
-        </p>
-        <p className="mt-1 text-[11px] text-ink-faint">@ikramramadhana</p>
+        <div className="flex items-baseline justify-between gap-3">
+          <div>
+            <h1 className="text-xs font-medium tracking-wide text-ink-faint">
+              breakbeat
+            </h1>
+            <p className="mt-1 text-xl font-bold text-ink-primary">
+              your music, no ads, no rush
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full border border-base-line px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-ink-faint">
+            @ikramramadhana
+          </span>
+        </div>
 
-        <div className="mt-6">
+        <div className="mt-8">
+          <p className="pb-2 text-xs font-medium uppercase tracking-wider text-ink-muted">
+            songs
+          </p>
+
           {loading && (
-            <p className="text-sm text-ink-muted">gathering your songs…</p>
+            <div className="mt-4 flex flex-col gap-2">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-md px-2 py-2"
+                >
+                  <div className="h-11 w-11 shrink-0 animate-pulse rounded-md bg-base-elevated" />
+                  <div className="flex-1">
+                    <div className="h-3.5 w-3/4 animate-pulse rounded bg-base-elevated" />
+                    <div className="mt-2 h-2.5 w-1/2 animate-pulse rounded bg-base-elevated" />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
 
           {!loading && loadError && (
-            <div className="text-sm text-ink-muted">
-              <p>couldn&apos;t reach your music.</p>
+            <div className="mt-4 text-sm text-ink-muted">
+              <p>couldn't reach your music.</p>
               <p className="mt-1 text-xs text-ink-faint">{loadError}</p>
             </div>
           )}
 
           {!loading && !loadError && songs.length === 0 && (
-            <div className="text-sm text-ink-muted">
+            <div className="mt-4 text-sm text-ink-muted">
               <p>no songs yet.</p>
               <p className="mt-1 text-xs text-ink-faint">
                 add rows to the{" "}

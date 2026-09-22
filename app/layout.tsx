@@ -26,7 +26,6 @@ export const metadata: Metadata = {
     icon: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
-  themeColor: "#0B0F1A",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0B0F1A",
+  themeColor: "#121212",
   viewportFit: "cover" as const,
 };
 
@@ -46,7 +45,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
-      <body className="font-body bg-night-deep text-ink-primary antialiased">
+      <body className="font-body bg-base text-ink-primary">
         {children}
       </body>
     </html>

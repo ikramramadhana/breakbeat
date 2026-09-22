@@ -4,25 +4,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        night: {
-          deep: "#0B0F1A",
-          mid: "#141B2E",
-          panel: "#1A2338",
-          line: "#252E45",
+        base: {
+          DEFAULT: "#121212",
+          deep: "#0A0A0A",
+          panel: "#181818",
+          elevated: "#282828",
+          line: "#2A2A2A",
         },
-        glow: {
-          DEFAULT: "#E8B975",
-          soft: "#F2CC94",
-          dim: "#8A6A3F",
-        },
-        dusk: {
-          DEFAULT: "#5B7A9D",
-          soft: "#7C97B5",
+        brand: {
+          DEFAULT: "#1DB954",
+          soft: "#1ED760",
+          dim: "#169C46",
         },
         ink: {
-          primary: "#F0EDE6",
-          muted: "#8B93A7",
-          faint: "#5A6278",
+          primary: "#FFFFFF",
+          muted: "#B3B3B3",
+          faint: "#727272",
         },
       },
       fontFamily: {
@@ -39,10 +36,15 @@ module.exports = {
           "50%": { transform: "translateY(-6px)" },
           "100%": { transform: "translateY(0px)" },
         },
+        equalize: {
+          "0%, 100%": { height: "20%" },
+          "50%": { height: "100%" },
+        },
       },
       animation: {
         breathe: "breathe 4.5s ease-in-out infinite",
         drift: "drift 6s ease-in-out infinite",
+        equalize: "equalize 0.9s ease-in-out infinite",
       },
     },
   },

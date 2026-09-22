@@ -27,7 +27,7 @@ export default function SleepTimer({
   const dashoffset = circumference * (1 - progress);
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex w-full max-w-sm flex-col items-center gap-4">
       <div className="flex items-center gap-3">
         <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
           <circle
@@ -35,7 +35,7 @@ export default function SleepTimer({
             cy="32"
             r={radius}
             fill="none"
-            stroke="#252E45"
+            stroke="#2A2A2A"
             strokeWidth="3"
           />
           {isActive && (
@@ -44,7 +44,7 @@ export default function SleepTimer({
               cy="32"
               r={radius}
               fill="none"
-              stroke="#E8B975"
+              stroke="#1DB954"
               strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -54,13 +54,15 @@ export default function SleepTimer({
           )}
         </svg>
 
-        <div className="font-body text-sm text-ink-muted">
+        <div className="text-sm text-ink-muted">
           {isActive ? (
             <div className="flex flex-col">
-              <span className="text-ink-primary">{formatTime(remainingSeconds)}</span>
+              <span className="font-medium text-ink-primary">
+                {formatTime(remainingSeconds)}
+              </span>
               <button
                 onClick={onCancel}
-                className="text-left text-xs text-ink-faint transition hover:text-glow"
+                className="text-left text-xs text-ink-faint transition hover:text-brand"
               >
                 cancel timer
               </button>
@@ -77,7 +79,7 @@ export default function SleepTimer({
             <button
               key={m}
               onClick={() => onStart(m)}
-              className="rounded-full border border-night-line px-3 py-1 text-xs text-ink-muted transition hover:border-glow/50 hover:text-glow"
+              className="rounded-full border border-base-line px-3 py-1 text-xs text-ink-muted transition hover:border-brand hover:text-brand"
             >
               {m}m
             </button>
@@ -85,7 +87,7 @@ export default function SleepTimer({
           {!customOpen ? (
             <button
               onClick={() => setCustomOpen(true)}
-              className="rounded-full border border-night-line px-3 py-1 text-xs text-ink-muted transition hover:border-glow/50 hover:text-glow"
+              className="rounded-full border border-base-line px-3 py-1 text-xs text-ink-muted transition hover:border-brand hover:text-brand"
             >
               custom
             </button>
@@ -106,7 +108,7 @@ export default function SleepTimer({
                 max={240}
                 value={customValue}
                 onChange={(e) => setCustomValue(e.target.value)}
-                className="w-14 rounded-full border border-night-line bg-transparent px-2 py-1 text-xs text-ink-primary outline-none focus:border-glow/50"
+                className="w-14 rounded-full border border-base-line bg-transparent px-2 py-1 text-xs text-ink-primary outline-none focus:border-brand"
               />
               <span className="text-xs text-ink-faint">min</span>
             </form>

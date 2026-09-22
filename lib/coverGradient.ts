@@ -1,12 +1,18 @@
-// Small set of on-brand gradients (built only from the palette already in
-// tailwind.config.js) so every song gets a distinct-looking tile without
-// needing real album art or drifting into random, clashing hues.
+// Rich, saturated gradients so every song gets a distinct-looking tile
+// without needing real album art. Spotify-like vibrancy, dark-friendly.
 const GRADIENTS = [
-  "linear-gradient(135deg, #E8B975 0%, #8A6A3F 100%)",
-  "linear-gradient(135deg, #5B7A9D 0%, #1A2338 100%)",
-  "linear-gradient(135deg, #7C97B5 0%, #252E45 100%)",
-  "linear-gradient(135deg, #F2CC94 0%, #5B7A9D 100%)",
-  "linear-gradient(135deg, #8A6A3F 0%, #141B2E 100%)",
+  "linear-gradient(135deg, #1DB954 0%, #0A4D2E 100%)",
+  "linear-gradient(135deg, #7C3AED 0%, #2E1065 100%)",
+  "linear-gradient(135deg, #EC4899 0%, #831843 100%)",
+  "linear-gradient(135deg, #F59E0B 0%, #7C2D12 100%)",
+  "linear-gradient(135deg, #3B82F6 0%, #1E3A8A 100%)",
+  "linear-gradient(135deg, #EF4444 0%, #7F1D1D 100%)",
+  "linear-gradient(135deg, #14B8A6 0%, #134E4A 100%)",
+  "linear-gradient(135deg, #A855F7 0%, #4C1D95 100%)",
+  "linear-gradient(135deg, #22C55E 0%, #14532D 100%)",
+  "linear-gradient(135deg, #0EA5E9 0%, #0C4A6E 100%)",
+  "linear-gradient(135deg, #F97316 0%, #9A3412 100%)",
+  "linear-gradient(135deg, #64748B 0%, #1E293B 100%)",
 ];
 
 function hashString(input: string): number {

@@ -2,9 +2,57 @@
 
 import type { Song } from "@/lib/supabase";
 import { formatTime } from "@/lib/shuffle";
-import BreathingOrb from "@/components/BreathingOrb";
 import SleepTimer from "@/components/SleepTimer";
 import { coverGradient } from "@/lib/coverGradient";
+
+function IconPlay() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M3 1.5v13l11-6.5-11-6.5z" />
+    </svg>
+  );
+}
+
+function IconPause() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+      <rect x="2" y="1" width="4" height="14" rx="1" />
+      <rect x="10" y="1" width="4" height="14" rx="1" />
+    </svg>
+  );
+}
+
+function IconPrev() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M14 1.5v13L4 8l10-6.5z" />
+      <rect x="1.9" y="1" width="1.6" height="14" rx="0.8" />
+    </svg>
+  );
+}
+
+function IconNext() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M2 1.5v13l10-6.5L2 1.5z" />
+      <rect x="12.5" y="1" width="1.6" height="14" rx="0.8" />
+    </svg>
+  );
+}
+
+function IconShuffle() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+      <path
+        d="M1 3.5h2.6l2.3 3-2.3 3H1M1 12.5h2.6l6.6-8.5H15M12.6 2.2 15 4l-2.4 1.8M12.6 10.2 15 12l-2.4 1.8"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export default function NowPlaying({
   song,
@@ -50,96 +98,100 @@ export default function NowPlaying({
   onMoveQueueItem: (index: number, direction: -1 | 1) => void;
 }) {
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
+  const volumePct = Math.round(volume * 100);
 
   return (
-    <div className="fixed inset-0 z-30 flex flex-col overflow-y-auto bg-night-deep px-6 pb-10 pt-6">
+    <div className="fixed inset-0 z-30 flex flex-col overflow-y-auto bg-base-deep px-6 pb-10 pt-6">
       <button
         onClick={onClose}
         aria-label="close"
-        className="self-center text-ink-faint"
+        className="self-center p-2 text-ink-faint transition hover:text-ink-primary"
       >
         <svg width="28" height="16" viewBox="0 0 28 16" fill="none">
           <path
             d="M2 2l12 11L26 2"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       </button>
 
-      <div className="mt-6 flex flex-col items-center gap-8">
-        <BreathingOrb active={isPlaying} />
+      <div className="mt-6 flex flex-1 flex-col items-center gap-8">
+        {/* Album art — big rounded square, Spotify style */}
+        <div
+          className="aspect-square w-full max-w-[18rem] shrink-0 rounded-lg shadow-2xl shadow-black/60"
+          style={{ backgroundImage: coverGradient(song?.id ?? "breakbeat") }}
+        />
 
-        <div className="text-center">
-          <h1 className="font-display text-2xl italic text-ink-primary">
+        <div className="w-full max-w-sm text-center">
+          <h1 className="truncate text-2xl font-bold text-ink-primary">
             {song?.title ?? "breakbeat"}
           </h1>
           {song?.artist && (
-            <p className="mt-1 text-sm text-ink-muted">{song.artist}</p>
+            <p className="mt-1 truncate text-sm text-ink-muted">
+              {song.artist}
+            </p>
           )}
         </div>
 
+        {/* Seek bar */}
         <div className="flex w-full max-w-sm flex-col gap-2">
-          <div className="h-[3px] w-full overflow-hidden rounded-full bg-night-line">
+          <div className="group relative h-1 w-full rounded-full bg-base-line">
             <div
-              className="h-full bg-glow transition-[width]"
+              className="absolute inset-y-0 left-0 rounded-full bg-brand transition-[width] duration-150"
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-ink-faint">
+          <div className="flex justify-between text-xs tabular-nums text-ink-faint">
             <span>{formatTime(progress)}</span>
             <span>{formatTime(duration)}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        {/* Controls */}
+        <div className="flex w-full max-w-sm items-center justify-between">
           <button
             onClick={onToggleShuffle}
             aria-pressed={isShuffle}
+            aria-label="shuffle"
             title="shuffle"
-            className={`text-sm transition ${
-              isShuffle ? "text-glow" : "text-ink-faint hover:text-ink-muted"
+            className={`transition ${
+              isShuffle
+                ? "text-brand"
+                : "text-ink-faint hover:text-ink-muted"
             }`}
           >
-            shuffle
+            <IconShuffle />
           </button>
 
           <button
             onClick={onPrev}
             aria-label="previous"
-            className="text-2xl text-ink-muted transition hover:text-ink-primary"
+            className="text-ink-primary transition hover:scale-105"
           >
-            ‹
+            <IconPrev />
           </button>
 
           <button
             onClick={onTogglePlay}
             aria-label={isPlaying ? "pause" : "play"}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-glow/40 text-glow transition hover:bg-glow/10"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-black transition hover:scale-105 hover:bg-brand-soft"
           >
-            {isPlaying ? (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="2" y="1" width="4" height="14" rx="1" />
-                <rect x="10" y="1" width="4" height="14" rx="1" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M3 1.5v13l11-6.5-11-6.5z" />
-              </svg>
-            )}
+            {isPlaying ? <IconPause /> : <IconPlay />}
           </button>
 
           <button
             onClick={onNext}
             aria-label="next"
-            className="text-2xl text-ink-muted transition hover:text-ink-primary"
+            className="text-ink-primary transition hover:scale-105"
           >
-            ›
+            <IconNext />
           </button>
 
-          <div className="w-16">
+          {/* Volume */}
+          <div className="flex w-20 items-center">
             <input
               type="range"
               min={0}
@@ -148,6 +200,8 @@ export default function NowPlaying({
               value={volume}
               onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
               aria-label="volume"
+              className="range-fill w-full"
+              style={{ ["--fill" as string]: `${volumePct}%` }}
             />
           </div>
         </div>
@@ -160,8 +214,9 @@ export default function NowPlaying({
           onCancel={onCancelTimer}
         />
 
+        {/* Queue */}
         <div className="w-full max-w-sm">
-          <p className="border-b border-night-line pb-2 text-xs text-ink-muted">
+          <p className="border-b border-base-line pb-2 text-xs font-medium uppercase tracking-wider text-ink-muted">
             up next {queue.length > 0 ? `· ${queue.length}` : ""}
           </p>
 
@@ -174,14 +229,14 @@ export default function NowPlaying({
               {queue.map((song, i) => (
                 <li
                   key={`${song.id}-${i}`}
-                  className="flex items-center gap-2 py-2"
+                  className="group flex items-center gap-3 rounded-md py-2 transition hover:bg-base-elevated/50"
                 >
                   <div
-                    className="h-8 w-8 shrink-0 rounded"
+                    className="h-9 w-9 shrink-0 rounded"
                     style={{ backgroundImage: coverGradient(song.id) }}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-sm italic text-ink-primary">
+                    <p className="truncate text-sm font-medium text-ink-primary">
                       {song.title}
                     </p>
                     {song.artist && (
@@ -194,7 +249,7 @@ export default function NowPlaying({
                     onClick={() => onMoveQueueItem(i, -1)}
                     disabled={i === 0}
                     aria-label="move up"
-                    className="text-ink-faint transition hover:text-ink-primary disabled:opacity-20"
+                    className="p-1 text-ink-faint transition hover:text-ink-primary disabled:opacity-20"
                   >
                     ↑
                   </button>
@@ -202,14 +257,14 @@ export default function NowPlaying({
                     onClick={() => onMoveQueueItem(i, 1)}
                     disabled={i === queue.length - 1}
                     aria-label="move down"
-                    className="text-ink-faint transition hover:text-ink-primary disabled:opacity-20"
+                    className="p-1 text-ink-faint transition hover:text-ink-primary disabled:opacity-20"
                   >
                     ↓
                   </button>
                   <button
                     onClick={() => onRemoveFromQueue(i)}
                     aria-label="remove from queue"
-                    className="text-ink-faint transition hover:text-glow"
+                    className="p-1 text-ink-faint transition hover:text-brand"
                   >
                     ×
                   </button>
