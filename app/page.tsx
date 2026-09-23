@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase, type Song } from "@/lib/supabase";
 import { shuffledIndices } from "@/lib/shuffle";
+import { loadSession, saveSession, type SavedSession } from "@/lib/session";
 import SongRow from "@/components/SongRow";
 import PlayerBar from "@/components/PlayerBar";
 import NowPlaying from "@/components/NowPlaying";
@@ -33,6 +34,15 @@ export default function Home() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Session persistence — restored once the library has loaded (see the load
+  // effect below) and written back whenever any of these values change.
+  // Until the restore has run we hold off on saving, so the initial defaults
+  // can't overwrite the stored session before it's been read.
+  const hydratedRef = useRef(false);
+  const resumeTimeRef = useRef(0);
+  const lastSavedRef = useRef<SavedSession | null>(null);
+  const lastProgressSaveAtRef = useRef(0);
+
   // load songs
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +57,42 @@ export default function Home() {
         setLoadError(error.message);
       } else {
         setSongs(data ?? []);
+
+        // Restore the previous session: cue the last song at its last
+        // position and bring back the volume, shuffle and queue. We only
+        // restore values that still exist in the library; anything whose id
+        // is no longer there is dropped.
+        if (!hydratedRef.current) {
+          const saved = loadSession();
+          const ids = new Set((data ?? []).map((s) => s.id));
+          if (saved.songId && ids.has(saved.songId)) {
+            const idx = (data ?? []).findIndex((s) => s.id === saved.songId);
+            if (idx !== -1) {
+              setCurrentIndex(idx);
+              resumeTimeRef.current = saved.progress;
+            }
+          }
+          if (saved.volume >= 0 && saved.volume <= 1) setVolume(saved.volume);
+          if (saved.isShuffle && (data ?? []).length > 0) {
+            const order = shuffledIndices((data ?? []).length, undefined);
+            if (saved.songId && ids.has(saved.songId)) {
+              const idx = (data ?? []).findIndex((s) => s.id === saved.songId);
+              if (idx !== -1) {
+                const pos = order.indexOf(idx);
+                if (pos !== -1) {
+                  order.splice(pos, 1);
+                  order.unshift(idx);
+                }
+              }
+            }
+            shuffleOrderRef.current = order;
+            shufflePosRef.current = 0;
+            setIsShuffle(true);
+          }
+          const validQueue = saved.queue.filter((id) => ids.has(id));
+          if (validQueue.length > 0) setManualQueue(validQueue);
+          hydratedRef.current = true;
+        }
       }
       setLoading(false);
     }
@@ -63,6 +109,9 @@ export default function Home() {
 
   const playIndex = useCallback((index: number) => {
     setCurrentIndex(index);
+    // A user-initiated jump to this song always starts it at the beginning —
+    // clear any position carried over from the previous session or track.
+    resumeTimeRef.current = 0;
     requestAnimationFrame(() => {
       const audio = audioRef.current;
       if (!audio) return;
@@ -197,8 +246,19 @@ export default function Home() {
       const clamped = Math.max(0, Math.min(time, max));
       audio.currentTime = clamped;
       setProgress(clamped);
+      // A scrub fires many times mid-drag; only persist the final resting
+      // position, otherwise we'd stamp every intermediate point along the way.
+      lastProgressSaveAtRef.current = Date.now();
+      lastSavedRef.current = {
+        songId: currentSong?.id ?? null,
+        progress: clamped,
+        volume,
+        isShuffle,
+        queue: manualQueue,
+      };
+      saveSession(lastSavedRef.current);
     },
-    [duration]
+    [duration, currentSong, volume, isShuffle, manualQueue]
   );
 
   // keep audio element volume in sync when not mid-fade
@@ -246,6 +306,71 @@ export default function Home() {
     setTimerActive(false);
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
+
+  // Persist the session so reopening the app puts you back where you left
+  // off: the last song and position, volume, shuffle and the "up next"
+  // queue. Skipped until the restore above has run. Progress is throttled —
+  // onTimeUpdate fires several times a second, so we only write it every
+  // couple of seconds and on pause/seek/leave (see flush below).
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const now = Date.now();
+    const progressChanged = lastSavedRef.current?.progress !== progress;
+    if (
+      progressChanged &&
+      now - lastProgressSaveAtRef.current < 2500 &&
+      lastSavedRef.current?.songId === currentSong?.id
+    ) {
+      return; // too soon; position is flushed on pause / hidden / unload
+    }
+    if (progressChanged) lastProgressSaveAtRef.current = now;
+    const next: SavedSession = {
+      songId: currentSong?.id ?? null,
+      progress,
+      volume,
+      isShuffle,
+      queue: manualQueue,
+    };
+    // Avoid churning localStorage when nothing actually changed.
+    if (
+      lastSavedRef.current &&
+      lastSavedRef.current.songId === next.songId &&
+      lastSavedRef.current.progress === next.progress &&
+      lastSavedRef.current.volume === next.volume &&
+      lastSavedRef.current.isShuffle === next.isShuffle &&
+      lastSavedRef.current.queue.length === next.queue.length &&
+      lastSavedRef.current.queue.every((id, i) => id === next.queue[i])
+    ) {
+      return;
+    }
+    lastSavedRef.current = next;
+    saveSession(next);
+  }, [currentSong, progress, volume, isShuffle, manualQueue]);
+
+  // Flush the current position when the page is hidden or closing — progress
+  // only saves periodically otherwise, so this catches a pause-then-leave and
+  // always stores the exact spot you stopped at.
+  useEffect(() => {
+    function flush() {
+      const audio = audioRef.current;
+      saveSession({
+        songId: currentSong?.id ?? null,
+        progress: audio?.currentTime ?? progress,
+        volume,
+        isShuffle,
+        queue: manualQueue,
+      });
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") flush();
+    }
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [currentSong, progress, volume, isShuffle, manualQueue]);
 
   // Media Session: lock-screen / notification playback controls, and it
   // signals the browser this is real media playback (helps it survive in
@@ -386,7 +511,21 @@ export default function Home() {
         ref={audioRef}
         src={currentSong?.file_url}
         onTimeUpdate={(e) => setProgress(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          setDuration(e.currentTarget.duration);
+          // Cue the restored position once the track's metadata is known —
+          // currentTime can only be set once we know how long the track is.
+          // Consumed once so a fresh tap on this song always starts at 0.
+          if (resumeTimeRef.current > 0) {
+            const target = resumeTimeRef.current;
+            resumeTimeRef.current = 0;
+            const d = e.currentTarget.duration;
+            if (d && Number.isFinite(d) && target < d) {
+              e.currentTarget.currentTime = target;
+              setProgress(target);
+            }
+          }
+        }}
         onEnded={goNext}
       />
     </main>

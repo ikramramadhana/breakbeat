@@ -69,6 +69,13 @@ Open [http://localhost:3000](http://localhost:3000).
   reshuffles once it's been through the whole list. It only affects the
   fallback order — songs you've explicitly queued always play next, in the
   order you put them.
+- **It remembers where you stopped** — the last song, its position, your
+  volume, shuffle setting and "up next" queue are saved in your browser and
+  restored next time you open the app. The song is cued up where you left it,
+  paused, so press play to carry on. Nothing is uploaded anywhere and there
+  are still no accounts — it's a single entry in your browser's local
+  storage, and it's dropped automatically if a song is removed from the
+  library.
 
 ## Playing with the screen off / in the background
 
