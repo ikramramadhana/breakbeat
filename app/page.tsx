@@ -185,6 +185,22 @@ export default function Home() {
     }
   }, [isPlaying, currentIndex, songs.length, playIndex]);
 
+  // Seek: jump to an exact time within the current track (e.g. straight to
+  // the chorus). Falls back to the last known duration if metadata is still
+  // loading, and is a no-op when we don't know how long the track is.
+  const seek = useCallback(
+    (time: number) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      const max = audio.duration || duration;
+      if (!(max > 0) || !Number.isFinite(time)) return;
+      const clamped = Math.max(0, Math.min(time, max));
+      audio.currentTime = clamped;
+      setProgress(clamped);
+    },
+    [duration]
+  );
+
   // keep audio element volume in sync when not mid-fade
   useEffect(() => {
     if (audioRef.current && !timerActive) {
@@ -336,6 +352,8 @@ export default function Home() {
         onTogglePlay={togglePlay}
         onNext={goNext}
         onExpand={() => setNowPlayingOpen(true)}
+        onSeek={seek}
+        duration={duration}
       />
 
       {nowPlayingOpen && (
@@ -353,6 +371,7 @@ export default function Home() {
           onPrev={goPrev}
           onToggleShuffle={toggleShuffle}
           onVolumeChange={setVolume}
+          onSeek={seek}
           timerRemaining={timerRemaining}
           timerTotal={timerTotal}
           timerActive={timerActive}

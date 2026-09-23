@@ -33,26 +33,44 @@ export default function PlayerBar({
   song,
   isPlaying,
   progressPct,
+  duration,
   onTogglePlay,
   onNext,
   onExpand,
+  onSeek,
 }: {
   song: Song | null;
   isPlaying: boolean;
   progressPct: number;
+  duration: number;
   onTogglePlay: () => void;
   onNext: () => void;
   onExpand: () => void;
+  onSeek: (time: number) => void;
 }) {
   if (!song) return null;
 
+  const handleSeek = (e: React.PointerEvent<HTMLDivElement>) => {
+    // only respond to the primary pointer (mouse left-click / touch / pen)
+    if (e.button !== undefined && e.button !== 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1));
+    onSeek(ratio * duration);
+  };
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 border-t border-base-line bg-base-panel/95 backdrop-blur-md">
-      {/* progress track */}
-      <div className="group relative h-[3px] w-full cursor-pointer bg-base-line">
+      {/* progress track — tap anywhere on the line to jump (e.g. to the chorus).
+          The invisible hit area extends upward into the bar's empty padding so
+          the 3px line is actually easy to tap, without covering the controls. */}
+      <div className="relative h-[3px] w-full bg-base-line">
         <div
           className="absolute inset-y-0 left-0 bg-brand transition-[width] duration-150"
           style={{ width: `${progressPct}%` }}
+        />
+        <div
+          onPointerDown={handleSeek}
+          className="absolute inset-x-0 bottom-0 top-[-12px] cursor-pointer"
         />
       </div>
 

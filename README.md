@@ -60,7 +60,8 @@ Open [http://localhost:3000](http://localhost:3000).
   (not the buttons) to open the full Now Playing screen.
 - **Now Playing** — the expanded view: shuffle, previous/next, volume, the
   sleep timer, and your **Up next** queue, where you can reorder or remove
-  tracks before they play.
+  tracks before they play. The progress bar on both the mini player and this
+  screen is scrubbable — tap or drag it to jump to any part of a track.
 - **Sleep timer** — pick a preset or a custom number of minutes. In the last
   20 seconds the volume fades to silence instead of cutting off abruptly,
   then playback pauses and your volume is restored for next time.

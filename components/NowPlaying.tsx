@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import type { Song } from "@/lib/supabase";
 import { formatTime } from "@/lib/shuffle";
 import SleepTimer from "@/components/SleepTimer";
@@ -68,6 +69,7 @@ export default function NowPlaying({
   onPrev,
   onToggleShuffle,
   onVolumeChange,
+  onSeek,
   timerRemaining,
   timerTotal,
   timerActive,
@@ -89,6 +91,7 @@ export default function NowPlaying({
   onPrev: () => void;
   onToggleShuffle: () => void;
   onVolumeChange: (v: number) => void;
+  onSeek: (time: number) => void;
   timerRemaining: number;
   timerTotal: number;
   timerActive: boolean;
@@ -99,6 +102,17 @@ export default function NowPlaying({
 }) {
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
   const volumePct = Math.round(volume * 100);
+
+  const seekRef = useRef<HTMLDivElement>(null);
+
+  // Map a pointer position on the seek bar to a time in the track, then seek.
+  const scrub = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = seekRef.current;
+    if (!el || duration <= 0) return;
+    const rect = el.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1));
+    onSeek(ratio * duration);
+  };
 
   return (
     <div className="fixed inset-0 z-30 flex flex-col overflow-y-auto bg-base-deep px-6 pb-10 pt-6">
@@ -136,12 +150,50 @@ export default function NowPlaying({
           )}
         </div>
 
-        {/* Seek bar */}
+        {/* Seek bar — tap or drag to jump anywhere in the track */}
         <div className="flex w-full max-w-sm flex-col gap-2">
-          <div className="group relative h-1 w-full rounded-full bg-base-line">
+          <div
+            ref={seekRef}
+            role="slider"
+            aria-label="seek"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(duration) || 0}
+            aria-valuenow={Math.round(progress)}
+            tabIndex={0}
+            onPointerDown={(e) => {
+              // only the primary pointer starts a seek (left-click / touch / pen)
+              if (e.button !== 0) return;
+              e.preventDefault();
+              e.currentTarget.setPointerCapture(e.pointerId);
+              scrub(e);
+            }}
+            onPointerMove={(e) => {
+              if (e.buttons === 0) return; // not dragging
+              scrub(e);
+            }}
+            onKeyDown={(e) => {
+              if (duration <= 0) return;
+              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                onSeek(progress + (e.key === "ArrowRight" ? 5 : -5));
+              } else if (e.key === "Home") {
+                e.preventDefault();
+                onSeek(0);
+              } else if (e.key === "End") {
+                e.preventDefault();
+                onSeek(duration);
+              }
+            }}
+            className="group relative h-5 w-full cursor-pointer touch-pan-y"
+          >
+            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-base-line" />
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-brand transition-[width] duration-150"
+              className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-brand"
               style={{ width: `${progressPct}%` }}
+            />
+            <div
+              className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow transition group-hover:opacity-100 group-focus:opacity-100"
+              style={{ left: `${progressPct}%` }}
             />
           </div>
           <div className="flex justify-between text-xs tabular-nums text-ink-faint">
